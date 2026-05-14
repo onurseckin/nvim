@@ -80,6 +80,18 @@ return {
       end,
     })
 
+    -- Silence the harmless but spammy "Command setContext not found" / etc.
+    -- These come from VSCode-extension LSPs (vtsls, tailwindcss, eslint) that
+    -- send VSCode-specific context updates Neovim doesn't implement.
+    -- The no-op handler keeps the log clean without affecting functionality.
+    for _, cmd in ipairs {
+      'setContext', '_typescript.setContext',
+      'editor.action.triggerSuggest', 'editor.action.triggerParameterHints',
+      'workbench.action.openSettings',
+    } do
+      vim.lsp.commands[cmd] = function() end
+    end
+
     -- Completion capabilities from blink.cmp — tells LSP servers we support
     -- snippets, additional textEdits, etc.
     local capabilities = require('blink.cmp').get_lsp_capabilities()
@@ -94,8 +106,33 @@ return {
           Lua = { completion = { callSnippet = 'Replace' } },
         },
       },
-      -- TypeScript / JavaScript / React / Next / NestJS
-      vtsls = {},
+      -- TypeScript / JavaScript / React / Next / NestJS.
+      -- Defaults are tuned for medium projects; proxai_nest hits the 3 GB cap.
+      -- Bumping maxTsServerMemory to 8 GB + suppressing autoImports' workspace
+      -- scan eliminates the SIGABRT crash loop on large monorepos.
+      vtsls = {
+        settings = {
+          typescript = {
+            tsserver = {
+              maxTsServerMemory = 8192,   -- 8 GB (default 3072)
+            },
+            preferences = {
+              includePackageJsonAutoImports = 'auto',  -- not 'on' (less workspace scanning)
+            },
+            updateImportsOnFileMove = { enabled = 'always' },
+            suggest = { completeFunctionCalls = true },
+          },
+          javascript = {
+            preferences = { includePackageJsonAutoImports = 'auto' },
+          },
+          vtsls = {
+            autoUseWorkspaceTsdk = true,  -- use the project's TS, not bundled
+            experimental = {
+              completion = { enableServerSideFuzzyMatch = true },
+            },
+          },
+        },
+      },
       eslint = {},
       tailwindcss = {
         filetypes = { 'html', 'css', 'scss', 'javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue', 'svelte' },
