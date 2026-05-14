@@ -47,10 +47,9 @@ opt.updatetime = 250           -- faster CursorHold (gitsigns/LSP rely on this)
 opt.timeoutlen = 300           -- which-key popup delay
 
 -- Clipboard: share with the OS (Cmd-C/Cmd-V work between nvim and other apps).
--- Scheduled after VimEnter to avoid slowing startup.
-vim.schedule(function()
-  opt.clipboard = 'unnamedplus'
-end)
+-- Set immediately (not via vim.schedule) so the system clipboard is the source
+-- of truth from the very first keystroke — including external Cmd-C.
+opt.clipboard = 'unnamedplus'
 
 -- Mouse works in all modes (useful even for power users for occasional clicks/resizes)
 opt.mouse = 'a'
