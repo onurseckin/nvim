@@ -35,10 +35,11 @@ require('lazy').setup({
   },
   performance = {
     rtp = {
-      -- Disable vim builtins we don't use, for faster startup
+      -- Disable vim builtins we don't use, for faster startup.
+      -- Note: `tutor` is intentionally KEPT enabled so `:Tutor` works.
       disabled_plugins = {
         'gzip', 'matchit', 'matchparen', 'netrwPlugin',
-        'tarPlugin', 'tohtml', 'tutor', 'zipPlugin',
+        'tarPlugin', 'tohtml', 'zipPlugin',
       },
     },
   },

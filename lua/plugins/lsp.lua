@@ -32,6 +32,25 @@ return {
 
         map('grn', vim.lsp.buf.rename, 'Rename symbol')
         map('gra', vim.lsp.buf.code_action, 'Code action', { 'n', 'x' })
+
+        -- TypeScript-specific code actions (work via vtsls). They no-op gracefully
+        -- on non-TS buffers since vtsls won't be the active client there.
+        local client = vim.lsp.get_client_by_id(event.data.client_id)
+        if client and client.name == 'vtsls' then
+          local function ts_action(name, source)
+            return function()
+              client:exec_cmd({
+                title = name,
+                command = 'typescript.' .. source,
+                arguments = { vim.api.nvim_buf_get_name(0) },
+              })
+            end
+          end
+          map('<leader>co', ts_action('Organize Imports', 'organizeImports'), '[C]ode: [o]rganize imports')
+          map('<leader>cM', ts_action('Add Missing Imports', 'addMissingImports'), '[C]ode: add [M]issing imports')
+          map('<leader>cu', ts_action('Remove Unused', 'removeUnused'), '[C]ode: remove [u]nused')
+          map('<leader>cF', ts_action('Fix All', 'fixAll'), '[C]ode: [F]ix all')
+        end
         map('grd', function() Snacks.picker.lsp_definitions() end, 'Goto definition')
         map('grr', function() Snacks.picker.lsp_references() end, 'Goto references')
         map('gri', function() Snacks.picker.lsp_implementations() end, 'Goto implementation')

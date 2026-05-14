@@ -11,6 +11,7 @@ return {
     branch = 'main',                 -- v1 API
     build = ':TSUpdate',
     event = { 'BufReadPre', 'BufNewFile' },
+    cmd = { 'TSUpdate', 'TSInstall', 'TSLog', 'TSUninstall' },
     config = function()
       require('nvim-treesitter').setup {
         install_dir = vim.fn.stdpath 'data' .. '/site',

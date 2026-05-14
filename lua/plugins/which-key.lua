@@ -26,6 +26,7 @@ return {
       { '<leader>r', group = '[R]efactor / [R]eplace' },
       { '<leader>o', group = '[O]utline' },
       { '<leader>S', group = '[S]ession' },
+      { '<leader>c', group = '[C]ode (LSP actions)' },
     },
   },
   keys = {
