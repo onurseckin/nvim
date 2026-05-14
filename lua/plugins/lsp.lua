@@ -116,13 +116,60 @@ return {
       ruff = { init_options = { settings = { logLevel = 'error' } } },
       -- Database / schema
       prismals = {},
+      sqls = {
+        -- sqls (Go-based). Faster + lower memory than the Node alternative.
+        -- Supports Postgres, MySQL, SQLite. Per-project connection details
+        -- live in ~/.config/sqls/config.yml. Without a config you still get
+        -- syntax, hover, completion, formatting.
+        settings = {
+          sqls = {
+            connections = {},   -- add per-project DB connections here when needed
+          },
+        },
+      },
+
       -- Config / markup / shell
-      jsonls = {},
-      yamlls = {},
-      taplo = {},      -- TOML (pyproject.toml etc.)
+      jsonls = {
+        on_new_config = function(new_config)
+          -- Hand jsonls the full SchemaStore catalog (tsconfig, package.json,
+          -- .eslintrc, .prettierrc, etc.)
+          new_config.settings.json.schemas = new_config.settings.json.schemas or {}
+          vim.list_extend(new_config.settings.json.schemas, require('schemastore').json.schemas())
+        end,
+        settings = {
+          json = {
+            validate = { enable = true },
+            format = { enable = true },
+          },
+        },
+      },
+      yamlls = {
+        on_new_config = function(new_config)
+          -- Same for yamlls — GitHub Actions, docker-compose, k8s, OpenAPI, etc.
+          new_config.settings.yaml.schemas = vim.tbl_deep_extend(
+            'force',
+            new_config.settings.yaml.schemas or {},
+            require('schemastore').yaml.schemas()
+          )
+        end,
+        settings = {
+          yaml = {
+            schemaStore = {
+              -- We pull schemas via schemastore.nvim, so disable yamlls's own fetcher.
+              enable = false,
+              url = '',
+            },
+            validate = true,
+            keyOrdering = false,           -- don't complain about un-alphabetized keys
+          },
+        },
+      },
+      taplo = {},                          -- TOML (pyproject.toml, Cargo.toml, etc.)
       bashls = {},
-      marksman = {},   -- Markdown
-      dockerls = {},
+      marksman = {},                       -- Markdown
+      dockerls = {},                       -- Dockerfile
+      docker_compose_language_service = {},-- docker-compose.yml (separate from dockerls)
+      helm_ls = {},                        -- Kubernetes Helm charts
     }
 
     -- Things that Mason should keep installed (LSPs + formatters).
@@ -132,6 +179,7 @@ return {
       'stylua',     -- Lua formatter
       'prettierd',  -- TS/JS/JSON/YAML/Markdown formatter (daemonized, fast)
       'prettier',   -- fallback when prettierd isn't available
+      'sqlfluff',   -- SQL linter + formatter (multi-dialect incl. Postgres)
     })
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 

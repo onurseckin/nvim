@@ -43,6 +43,14 @@ return {
       yaml              = { 'prettierd', 'prettier', stop_after_first = true },
       markdown          = { 'prettierd', 'prettier', stop_after_first = true },
       graphql           = { 'prettierd', 'prettier', stop_after_first = true },
+      sql               = { 'sqlfluff' },           -- multi-dialect SQL formatter
+    },
+    formatters = {
+      sqlfluff = {
+        -- Default to Postgres dialect since that's what you use in proxai.
+        -- Override per-project via .sqlfluff config file in the repo root.
+        prepend_args = { 'format', '--dialect', 'postgres' },
+      },
     },
   },
 }
